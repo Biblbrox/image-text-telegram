@@ -1,0 +1,16 @@
+{
+    "name": "biblbrox/text-image-generator",
+    "description": "Generator images with text labels.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aleksey Kuchkov",
+            "email": "biblbroxxx@gmail.com"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "codeception/codeception": "^2.4"
+    }
+}
