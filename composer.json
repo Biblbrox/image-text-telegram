@@ -9,8 +9,16 @@
             "email": "biblbroxxx@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "longman/telegram-bot": "*",
+        "php-telegram-bot/telegram-bot-manager": "*"
+    },
     "require-dev": {
         "codeception/codeception": "^2.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "TextOnImage\\": "src/"
+        }
     }
 }
