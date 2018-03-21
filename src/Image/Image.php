@@ -43,32 +43,62 @@ class Image
 
     /**
      * @param $text
-     * @param int $posX
-     * @param int $posY
+     * @param string $pos
      * @param int $fontSize
      * @throws \Exception
      */
-    public function addText($text, $posX = 0, $posY = 0, $fontSize = 25)
+    public function addText($text, $pos = "middle", $fontSize = 25)
     {
         $this->text = TextHelper::adaptTextToImage($text, $this->image, AliasHelper::getPath("@res/courbd.ttf"), $fontSize);
         $draw = new ImagickDraw();
+        $_pos = lcfirst($pos);
 
         $draw->setFontSize($fontSize);
         $draw->setStrokeColor(Color::rgb(0, 0, 0, 120));
         $draw->setFillColor(Color::rgb(0, 0, 0, 120));
-        $draw->rectangle(0, $this->image->getImageHeight() / 3, $this->image->getImageWidth(), $this->image->getImageHeight() / 3 * 2);
+        switch ($_pos) {
+            case "top":
+                $draw->rectangle(0, 0, $this->image->getImageWidth(), $this->image->getImageHeight() / 3);
+                break;
+            case "middle":
+                $draw->rectangle(0, $this->image->getImageHeight() / 3, $this->image->getImageWidth(), $this->image->getImageHeight() / 3 * 2);
+                break;
+            case "bottom":
+                $draw->rectangle(0, $this->image->getImageHeight() / 3 * 2, $this->image->getImageWidth(), $this->image->getImageHeight());
+                break;
+            default:
+                break;
+        }
+
         $draw->setFont(TextConfig::getInstance()->getFont());
-        $draw->setGravity(Imagick::GRAVITY_CENTER);
+        switch ($_pos) {
+            case "top":
+                $draw->setGravity(Imagick::GRAVITY_NORTH);
+                break;
+            case "middle":
+                $draw->setGravity(Imagick::GRAVITY_CENTER);
+                break;
+            case "bottom":
+                $draw->setGravity(Imagick::GRAVITY_SOUTH);
+                break;
+        }
         $draw->setFillColor(Color::rgb(255, 255, 255));
 
-        if (count($this->text) === 1) {
-            $draw->annotation($posX, $posY, $this->text->getRow(0)->getText());
-        } else {
-            $padding = 0;
-            foreach ($this->text as $row) {
-                $draw->annotation($posX, $posY - $this->text->getArea()->getHeight() / 2 + $padding, $row->getText());
-                $padding += 40;
+        $padding = 0;
+        $fix = 120;
+        foreach ($this->text as $row) {
+            switch ($_pos) {
+                case "top":
+                    $draw->annotation(0, $fix - $this->text->getArea()->getHeight() / 2 + $padding, $row->getText());
+                    break;
+                case "middle":
+                    $draw->annotation(0, -$this->text->getArea()->getHeight() / 2 + $padding, $row->getText());
+                    break;
+                case "bottom":
+                    $draw->annotation(0, $fix - $this->text->getArea()->getHeight() / 2 + $padding, $row->getText());
+                    break;
             }
+            $padding += 40;
         }
 
         $this->image->drawImage($draw);

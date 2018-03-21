@@ -14,6 +14,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Request;
 use PDO;
 use TextOnImage\Image\Image;
@@ -61,40 +62,65 @@ class AddtextCommand extends UserCommand
 
         // Start conversation
         $conversation = new Conversation($user_id, $chat_id, $this->getName());
+        $notes = &$conversation->notes;
+        if (!isset($notes['prev_action'])) {
+            $notes['prev_action'] = 'begin';
+        }
         $message_type = $message->getType();
-        if ($message_type === 'photo') {
-            $doc = $message->getPhoto();
-            // For photos, get the best quality!
-            $doc = end($doc);
-            $file_id = $doc->getFileId();
-            $file    = Request::getFile(['file_id' => $file_id]);
-            if ($file->isOk() && Request::downloadFile($file->getResult())) {
-                $data['text'] = "Ok. Type the text which you want to see on image";
-            } else {
-                $data['text'] = 'Failed to download.';
-            }
-            $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
-            $stmt->execute([$user_id]);
-            $stmt = Database::$connection->prepare("INSERT INTO image (user_id, path) VALUES (?, ?)");
-            $stmt->execute([$user_id, $this->telegram->getDownloadPath() . '/' . $file->getResult()->getFilePath()]);
-        } else if($message_type === "text") {
-            if (!$image->imageLoaded()) {
-                $data['text'] = 'Please upload the photo before setting text';
-            } else {
-                $image->addText($message->getText());
+        switch ($notes['prev_action']) {
+            case 'begin': // Init state
+                $data['text'] = 'Please upload the photo now';
+                $notes['prev_action'] = 'init-message-send';
+                $conversation->update();
+                break;
+            case 'init-message-send': // Download photo state.
+                $doc = $message->getPhoto();
+                // For photos, get the best quality!
+                $doc = end($doc);
+                $file_id = $doc->getFileId();
+                $file    = Request::getFile(['file_id' => $file_id]);
+                if ($file->isOk() && Request::downloadFile($file->getResult())) {
+                    $data['text'] = "Ok. Type the text which you want to see on image";
+                } else {
+                    $data['text'] = 'Failed to download.';
+                }
+                $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
+                $stmt->execute([$user_id]);
+                $stmt = Database::$connection->prepare("INSERT INTO image (user_id, path) VALUES (?, ?)");
+                $stmt->execute([$user_id, $this->telegram->getDownloadPath() . '/' . $file->getResult()->getFilePath()]);
+                $notes['prev_action'] = "download-photo";
+                $conversation->update();
+                break;
+            case 'download-photo':
+                $notes['text'] = $message->getText();
+                $buttons = [
+                    new KeyboardButton("Top"),
+                    new KeyboardButton("Middle"),
+                    new KeyboardButton("Bottom")
+                ];
+                $data['reply_markup'] = (new Keyboard($buttons))->setOneTimeKeyboard(true)
+                                                                ->setResizeKeyboard(true)
+                                                                ->setSelective(true);
+                $data['text'] = "Choose text position";
+                $notes['prev_action'] = 'choose-pos';
+                $conversation->update();
+                break;
+            case 'choose-pos': // Add text state
+                $image->addText($notes['text'], trim($message->getText()));
                 $stmt = Database::$connection->prepare("SELECT path FROM image WHERE user_id = ?");
                 $stmt->execute([$user_id]);
                 $row = $stmt->fetch(PDO::FETCH_LAZY);
                 $file_path = $row['path'];
                 $data['photo'] = Request::encodeFile($file_path);
-                $conversation->update();
-                $conversation->stop();
+                $notes['prev_action'] = "add-text";
                 FileHelper::deleteFilesInDir($this->telegram->getDownloadPath() . '/photos/');
                 $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
                 $stmt->execute([$user_id]);
-            }
-        } else {
-            $data['text'] = 'Please upload the photo now';
+                $conversation->update();
+                $conversation->stop();
+                break;
+            default:
+                break;
         }
 
         $return = isset($data['text']) ? Request::sendMessage($data) : Request::sendPhoto($data);

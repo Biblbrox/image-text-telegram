@@ -52,6 +52,8 @@ class TextHelper
                     }
                 }
             }
+        } else {
+            $resultStr->appendRow($str);
         }
 
         return $resultStr;
