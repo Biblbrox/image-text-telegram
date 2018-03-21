@@ -1,6 +1,0 @@
-[2018-03-14 20:44:40] bot_log.ERROR: Longman\TelegramBot\Exception\TelegramException: Webhook was not set! Error: 400 Bad Request: bad webhook: getaddrinfo: Name or service not known in /home/staralex/textImageGenerator/vendor/longman/telegram-bot/src/Telegram.php:806
-Stack trace:
-#0 /home/staralex/textImageGenerator/vendor/php-telegram-bot/telegram-bot-manager/src/BotManager.php(229): Longman\TelegramBot\Telegram->setWebhook('https://imagept...', Array)
-#1 /home/staralex/textImageGenerator/vendor/php-telegram-bot/telegram-bot-manager/src/BotManager.php(138): TelegramBot\TelegramBotManager\BotManager->validateAndSetWebhook()
-#2 /home/staralex/textImageGenerator/manager.php(80): TelegramBot\TelegramBotManager\BotManager->run()
-#3 {main} [] []

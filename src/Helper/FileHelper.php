@@ -3,7 +3,7 @@
 
 namespace TextOnImage\Helper;
 
-class FileHandler
+class FileHelper
 {
     /**
      * @param $dir

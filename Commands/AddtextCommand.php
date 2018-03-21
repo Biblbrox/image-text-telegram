@@ -16,9 +16,9 @@ use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Request;
 use PDO;
-use TextOnImage\App\Image;
+use TextOnImage\Image\Image;
 use TextOnImage\Helper\Database;
-use TextOnImage\Helper\FileHandler;
+use TextOnImage\Helper\FileHelper;
 
 class AddtextCommand extends UserCommand
 {
@@ -73,20 +73,15 @@ class AddtextCommand extends UserCommand
             } else {
                 $data['text'] = 'Failed to download.';
             }
-            $stmt = Database::$connection->prepare("SELECT path FROM image WHERE user_id = ?");
+            $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
             $stmt->execute([$user_id]);
-            $row = $stmt->fetch(PDO::FETCH_LAZY);
-            if ($row) {
-                $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
-                $stmt->execute([$user_id]);
-            }
             $stmt = Database::$connection->prepare("INSERT INTO image (user_id, path) VALUES (?, ?)");
             $stmt->execute([$user_id, $this->telegram->getDownloadPath() . '/' . $file->getResult()->getFilePath()]);
         } else if($message_type === "text") {
-            if (!isset($image->image)) {
+            if (!$image->imageLoaded()) {
                 $data['text'] = 'Please upload the photo before setting text';
             } else {
-                $image->addText($message->getText(), 200, 200);
+                $image->addText($message->getText());
                 $stmt = Database::$connection->prepare("SELECT path FROM image WHERE user_id = ?");
                 $stmt->execute([$user_id]);
                 $row = $stmt->fetch(PDO::FETCH_LAZY);
@@ -94,14 +89,9 @@ class AddtextCommand extends UserCommand
                 $data['photo'] = Request::encodeFile($file_path);
                 $conversation->update();
                 $conversation->stop();
-                FileHandler::deleteFilesInDir($this->telegram->getDownloadPath() . '/photos/');
-                $stmt = Database::$connection->prepare("SELECT path FROM image WHERE user_id = ?");
+                FileHelper::deleteFilesInDir($this->telegram->getDownloadPath() . '/photos/');
+                $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
                 $stmt->execute([$user_id]);
-                $row = $stmt->fetch(PDO::FETCH_LAZY);
-                if ($row) {
-                    $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
-                    $stmt->execute([$user_id]);
-                }
             }
         } else {
             $data['text'] = 'Please upload the photo now';

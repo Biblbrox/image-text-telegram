@@ -18,11 +18,17 @@ use TelegramBot\TelegramBotManager\Exception\InvalidAccessException;
 use TelegramBot\TelegramBotManager\Exception\InvalidActionException;
 use TelegramBot\TelegramBotManager\Exception\InvalidParamsException;
 use TelegramBot\TelegramBotManager\Exception\InvalidWebhookException;
+use TextOnImage\Text\TextConfig;
+use TextOnImage\Helper\AliasHelper;
 use TextOnImage\Helper\Database;
 
 error_reporting(E_ALL);
 
 Database::initialize();
+$fontConfig = TextConfig::getInstance();
+$fontConfig->setFont(AliasHelper::getPath("@res/courbd.ttf"));
+$fontConfig->setLineSpacing(40);
+
 
 // Add you bot's username (also to be used for log file names)
 $bot_username = "ImagePlusTextBot";

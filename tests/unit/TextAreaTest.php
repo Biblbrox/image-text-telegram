@@ -1,6 +1,6 @@
 <?php
 
-class AddtextCommandTest extends \Codeception\Test\Unit
+class TextAreaTest extends \Codeception\Test\Unit
 {
     /**
      * @var \UnitTester
@@ -15,9 +15,6 @@ class AddtextCommandTest extends \Codeception\Test\Unit
     {
     }
 
-    // tests
-    public function testSomeFeature()
-    {
 
-    }
+
 }
