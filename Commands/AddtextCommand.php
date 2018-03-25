@@ -11,7 +11,6 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-use Imagick;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
@@ -40,7 +39,7 @@ class AddtextCommand extends UserCommand
      */
     public function execute()
     {
-        $suppFormats = Imagick::queryFormats();
+        $suppFormats = ['jpg', 'jpeg', 'png', 'ico', 'bmp'];
         $message = $this->getMessage();
         $chat    = $message->getChat();
         $chat_id = $chat->getId();
@@ -57,7 +56,7 @@ class AddtextCommand extends UserCommand
             $data['reply_markup'] = Keyboard::forceReply(['selective' => true]);
         }
 
-        $stmt = Database::$connection->prepare("SELECT path FROM image WHERE user_id = ?");
+        $stmt = Database::$connection->prepare('SELECT path FROM image WHERE user_id = ?');
         $stmt->execute([$user_id]);
 
         $row = $stmt->fetch(PDO::FETCH_LAZY);
@@ -71,6 +70,11 @@ class AddtextCommand extends UserCommand
         if (!isset($notes['prev_action'])) {
             $notes['prev_action'] = 'begin';
         }
+        $buttons = [
+            new KeyboardButton('Top'),
+            new KeyboardButton('Middle'),
+            new KeyboardButton('Bottom')
+        ];
         $message_type = $message->getType();
         switch ($notes['prev_action']) {
             case 'begin': // Init state
@@ -78,49 +82,72 @@ class AddtextCommand extends UserCommand
                 $notes['prev_action'] = 'init-message-send';
                 $conversation->update();
                 break;
-            case 'init-message-send': // Download photo state.
+            case 'init-message-send': // Downloading photo step.
+                if ($message_type !== 'photo') {
+                    $data['text'] = 'You must send photo now';
+                    break;
+                }
                 $doc = $message->getPhoto();
                 // For photos, get the best quality!
-                $doc = end($doc);
+                $message_type === "photo" && $doc = end($doc);
                 $file_id = $doc->getFileId();
                 $file    = Request::getFile(['file_id' => $file_id]);
                 if ($file->isOk() && Request::downloadFile($file->getResult())) {
-                    $data['text'] = "Ok. Type the text which you want to see on image";
+                    $data['text'] = 'Ok. Type the text which you want to see on image';
                 } else {
                     $data['text'] = 'Failed to download.';
                 }
-                $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
+                $filePath = $this->telegram->getDownloadPath() . '/' . $file->getResult()->getFilePath();
+                $ext = pathinfo($filePath, PATHINFO_EXTENSION);
+                if (!in_array(strtolower($ext), $suppFormats)) {
+                    $formats = implode(', ', $suppFormats);
+                    $data['text'] = sprintf('Image must have one of these formats: %s', $formats);
+                    FileHelper::deleteFile($filePath);
+                    break;
+                }
+                $stmt = Database::$connection->prepare('DELETE FROM image WHERE user_id = ?');
                 $stmt->execute([$user_id]);
-                $stmt = Database::$connection->prepare("INSERT INTO image (user_id, path) VALUES (?, ?)");
-                $stmt->execute([$user_id, $this->telegram->getDownloadPath() . '/' . $file->getResult()->getFilePath()]);
-                $notes['prev_action'] = "download-photo";
+                $stmt = Database::$connection->prepare('INSERT INTO image (user_id, path) VALUES (?, ?)');
+                $stmt->execute([$user_id, $filePath]);
+                $notes['prev_action'] = 'download-photo';
                 $conversation->update();
                 break;
-            case 'download-photo':
+            case 'download-photo': // Setting position step
+                if ($message_type !== 'text') {
+                    $data['text'] = 'You must send text now';
+                    break;
+                }
                 $notes['text'] = $message->getText();
-                $buttons = [
-                    new KeyboardButton("Top"),
-                    new KeyboardButton("Middle"),
-                    new KeyboardButton("Bottom")
-                ];
                 $data['reply_markup'] = (new Keyboard($buttons))->setOneTimeKeyboard(true)
                                                                 ->setResizeKeyboard(true)
                                                                 ->setSelective(true);
-                $data['text'] = "Choose text position";
+                $data['text'] = 'Choose text position';
                 $notes['prev_action'] = 'choose-pos';
                 $conversation->update();
                 break;
-            case 'choose-pos': // Add text state
+            case 'choose-pos': // Adding text step
+                if ($message_type !== 'text') {
+                    $data['text'] = 'You must send position now';
+                    break;
+                }
+                $pos = ['top', 'middle', 'bottom'];
+                if (!in_array(strtolower($message->getText()), $pos)) {
+                    $data['text'] = sprintf('Wrong position. Send one of these: %s', implode(', ', $pos));
+                    $data['reply_markup'] = (new Keyboard($buttons))->setOneTimeKeyboard(true)
+                        ->setResizeKeyboard(true)
+                        ->setSelective(true);
+                    break;
+                }
                 $image->addText($notes['text'], trim($message->getText()));
-                $stmt = Database::$connection->prepare("SELECT path FROM image WHERE user_id = ?");
+                $stmt = Database::$connection->prepare('SELECT path FROM image WHERE user_id = ?');
                 $stmt->execute([$user_id]);
                 $row = $stmt->fetch(PDO::FETCH_LAZY);
                 $file_path = $row['path'];
                 $data['photo'] = Request::encodeFile($file_path);
-                $notes['prev_action'] = "add-text";
                 FileHelper::deleteFilesInDir($this->telegram->getDownloadPath() . '/photos/');
-                $stmt = Database::$connection->prepare("DELETE FROM image WHERE user_id = ?");
+                $stmt = Database::$connection->prepare('DELETE FROM image WHERE user_id = ?');
                 $stmt->execute([$user_id]);
+                $notes['prev_action'] = 'add-text';
                 $conversation->update();
                 $conversation->stop();
                 break;
