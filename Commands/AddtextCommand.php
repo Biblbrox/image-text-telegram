@@ -11,6 +11,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+use Imagick;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
@@ -31,12 +32,15 @@ class AddtextCommand extends UserCommand
     protected $usage = '/addtext';
     protected $version = '0.1.0';
     protected $need_mysql = true;
+
+
     /**#@-*/
     /**
      * {@inheritdoc}
      */
     public function execute()
     {
+        $suppFormats = Imagick::queryFormats();
         $message = $this->getMessage();
         $chat    = $message->getChat();
         $chat_id = $chat->getId();
