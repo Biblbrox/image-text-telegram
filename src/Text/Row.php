@@ -3,7 +3,10 @@
 
 namespace TextOnImage\Text;
 
-
+/**
+ * Class Row
+ * @package TextOnImage\Text
+ */
 class Row
 {
     /**
@@ -44,6 +47,9 @@ class Row
         $this->text .= $str;
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->text;

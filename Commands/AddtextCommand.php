@@ -62,6 +62,7 @@ class AddtextCommand extends UserCommand
 
         // Start conversation
         $conversation = new Conversation($user_id, $chat_id, $this->getName());
+//        $conversation->stop();
         $notes = &$conversation->notes;
         if (!isset($notes['prev_action'])) {
             $notes['prev_action'] = 'begin';

@@ -2,6 +2,10 @@
 
 namespace TextOnImage\Text;
 
+/**
+ * Class Text
+ * @package TextOnImage\Text
+ */
 class Text implements \Iterator, \Countable
 {
     /**
@@ -37,6 +41,33 @@ class Text implements \Iterator, \Countable
     }
 
     /**
+     * @return array
+     */
+    public function getRows()
+    {
+        return $this->rows;
+    }
+
+    /**
+     * @param array $rows
+     */
+    public function setRows(array $rows = [])
+    {
+        $this->rows = $rows;
+    }
+
+    /**
+     * @param $text
+     * @param int $number
+     */
+    public function appendRows($text, $number = 1)
+    {
+        foreach (range(0, $number) as $i) {
+            $this->appendRow($text);
+        }
+    }
+
+    /**
      *
      * @param $text
      */
@@ -44,6 +75,28 @@ class Text implements \Iterator, \Countable
     {
         $this->rows[] = new Row($text);
         $this->area->setText($this);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMaxWidth()
+    {
+        $size = imagettfbbox(TextConfig::getInstance()->getFontSize(), 0, TextConfig::getInstance()->getFont(), $this->getRow(0)->getText());
+        $width = $size[2] - $size[0];
+        $max = $width;
+        /**
+         * @var Row $row
+         */
+        foreach ($this->rows as $row) {
+            $size = imagettfbbox(TextConfig::getInstance()->getFontSize(), 0, TextConfig::getInstance()->getFont(), $row->getText());
+            $width = $size[2] - $size[0];
+            if ($max < $width) {
+                $max = $width;
+            }
+        }
+
+        return $width;
     }
 
     /**

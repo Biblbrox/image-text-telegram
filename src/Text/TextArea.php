@@ -57,16 +57,18 @@ class TextArea
             $sizes[] = imagettfbbox($sizeFont, 0, $fontLocation, $row->getText());
         }
 
-        $maxWidth = $sizes[0][2] - $sizes[0][0];
-        foreach ($sizes as $size) {
-            if ($size[2] - $size[0] > $maxWidth) {
-                $maxWidth = $size[2] - $size[0];
+        if (isset($sizes[0])) {
+            $maxWidth = $sizes[0][2] - $sizes[0][0];
+            foreach ($sizes as $size) {
+                if ($size[2] - $size[0] > $maxWidth) {
+                    $maxWidth = $size[2] - $size[0];
+                }
             }
-        }
 
-        $this->width = $maxWidth;
-        $this->height = ($sizes[0][7] - $sizes[0][1]) * count($sizes)
-            + TextConfig::getInstance()->getLineSpacing() * (count($sizes) - 1);
+            $this->width = $maxWidth;
+            $this->height = ($sizes[0][7] - $sizes[0][1]) * count($sizes)
+                + TextConfig::getInstance()->getLineSpacing() * (count($sizes) - 1);
+        }
     }
 
 

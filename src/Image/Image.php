@@ -24,6 +24,9 @@ class Image
      */
     private $text;
 
+    /**
+     * @var string $imagePath
+     */
     public $imagePath;
 
     /**
@@ -44,15 +47,16 @@ class Image
     /**
      * @param $text
      * @param string $pos
-     * @param int $fontSize
      * @throws \Exception
      */
-    public function addText($text, $pos = "middle", $fontSize = 25)
+    public function addText($text, $pos = "middle")
     {
-        $this->text = TextHelper::adaptTextToImage($text, $this->image, AliasHelper::getPath("@res/courbd.ttf"), $fontSize);
+        $fontSize = TextConfig::getInstance()->getFontSize();
+        $this->text = TextHelper::splitToRows($text, $this->image);
         $draw = new ImagickDraw();
         $_pos = lcfirst($pos);
 
+        $draw->setTextAntialias(true);
         $draw->setFontSize($fontSize);
         $draw->setStrokeColor(Color::rgb(0, 0, 0, 120));
         $draw->setFillColor(Color::rgb(0, 0, 0, 120));
@@ -64,6 +68,7 @@ class Image
                 $draw->rectangle(0, $this->image->getImageHeight() / 3, $this->image->getImageWidth(), $this->image->getImageHeight() / 3 * 2);
                 break;
             case "bottom":
+                $this->text->setRows(array_reverse($this->text->getRows()));
                 $draw->rectangle(0, $this->image->getImageHeight() / 3 * 2, $this->image->getImageWidth(), $this->image->getImageHeight());
                 break;
             default:
@@ -98,7 +103,7 @@ class Image
                     $draw->annotation(0, $fix - $this->text->getArea()->getHeight() / 2 + $padding, $row->getText());
                     break;
             }
-            $padding += 40;
+            $padding += TextConfig::getInstance()->getLineSpacing();
         }
 
         $this->image->drawImage($draw);

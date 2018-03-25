@@ -3,16 +3,26 @@
 
 namespace TextOnImage\Helper;
 
-
+/**
+ * Class Color
+ * @package TextOnImage\Helper
+ */
 class Color
 {
 
+    /**
+     * @param $r
+     * @param $g
+     * @param $b
+     * @param int $a
+     * @return \ImagickPixel
+     */
     public static function rgb($r, $g, $b, $a = 255)
     {
         if (($r < 0 || $r > 255)
-        || ($g < 0 || $g > 255)
-        || ($b < 0 || $b > 255)
-        || ($a < 0 || $a > 255)) {
+            || ($g < 0 || $g > 255)
+            || ($b < 0 || $b > 255)
+            || ($a < 0 || $a > 255)) {
             throw new \InvalidArgumentException("The color r, g, b must be in range (0, 255)");
         }
 

@@ -1,26 +1,41 @@
 <?php
 
-
 namespace TextOnImage\Text;
 
-
-use TextOnImage\Helper\AliasHelper;
-
+/**
+ * Class TextConfig
+ * @package TextOnImage\Text
+ */
 final class TextConfig
 {
+    /**
+     * @var TextConfig $instance
+     */
     private static $instance;
 
     /**
-     * @var
+     * Path to font file
+     * @var string $font
      */
     private $font;
 
+    /**
+     * @var int $lineSpacing
+     */
     private $lineSpacing;
 
-    public static function getInstance()
+    /**
+     * @var int $fontSize
+     */
+    private $fontSize;
+
+    /**
+     * @return TextConfig
+     */
+    public static function getInstance() : TextConfig
     {
         if (!isset(self::$instance)) {
-            self::$instance = new self(AliasHelper::getPath("@root/res/courbd.ttf"));
+            self::$instance = new self();
         }
 
         return self::$instance;
@@ -28,12 +43,9 @@ final class TextConfig
 
     /**
      * FontConfig constructor.
-     * @param string $font
      */
-    private function __construct($font)
+    private function __construct()
     {
-        $this->setFont($font);
-        $this->lineSpacing = 40;
     }
 
     /**
@@ -70,5 +82,21 @@ final class TextConfig
     public function setLineSpacing(int $lineSpacing)
     {
         $this->lineSpacing = $lineSpacing;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFontSize()
+    {
+        return $this->fontSize;
+    }
+
+    /**
+     * @param mixed $fontSize
+     */
+    public function setFontSize($fontSize): void
+    {
+        $this->fontSize = $fontSize;
     }
 }

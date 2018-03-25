@@ -10,6 +10,8 @@
 // Load composer
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/functions.php';
+
 use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Exception\TelegramLogException;
 use Longman\TelegramBot\TelegramLog;
@@ -26,9 +28,9 @@ error_reporting(E_ALL);
 
 Database::initialize();
 $fontConfig = TextConfig::getInstance();
-$fontConfig->setFont(AliasHelper::getPath("@res/courbd.ttf"));
+$fontConfig->setFont(AliasHelper::getPath("@res/LiberationSans-Bold.ttf"));
+$fontConfig->setFontSize(25);
 $fontConfig->setLineSpacing(40);
-
 
 // Add you bot's username (also to be used for log file names)
 $bot_username = "ImagePlusTextBot";
