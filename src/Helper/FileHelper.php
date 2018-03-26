@@ -38,6 +38,10 @@ class FileHelper
      */
     public static function deleteDir($dir, $mode = self::WHOLE_DIR)
     {
+        if ($mode !== self::WHOLE_DIR && $mode !== self::ONLY_FILES) {
+            throw new \InvalidArgumentException('Invalid $mode parameter');
+        }
+
         if (!is_dir($dir)) {
             throw new \InvalidArgumentException('$dir parameter must be a directory');
         }
@@ -45,14 +49,8 @@ class FileHelper
         foreach ($files as $file) {
             self::deleteFile($file);
         }
-        switch ($mode) {
-            case self::WHOLE_DIR:
-                rmdir($dir);
-                break;
-            case self::ONLY_FILES:
-                break;
-            default:
-                throw new \InvalidArgumentException('Invalid $mode parameter');
+        if ($mode === self::WHOLE_DIR) {
+            rmdir($dir);
         }
     }
 }
