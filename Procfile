@@ -1,0 +1,1 @@
+web: php manager.php a=handle l=3000000 i=1
