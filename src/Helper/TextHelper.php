@@ -20,14 +20,14 @@ class TextHelper
      */
     public static function splitToRows(string $str, Imagick $image) : Text
     {
-        $size = self::lenTTFString($str) / ($image->getImageWidth() - $image->getImageWidth() / 10);
+        $size = self::lenTTFString($str) / ($image->getImageWidth() - $image->getImageWidth() / 40);
 
         $chunk = intval(1 / $size * self::lenTTFString($str) / self::symbolWidth($str));
         $result = chunk_split($str, $chunk, "\n");
 
         $text = new Text(TextConfig::getInstance()->getFont(), TextConfig::getInstance()->getFontSize());
         $newLineCount = substr_count($result, "\n") - 1;
-        $text->appendRows("", $newLineCount);
+        $text->appendRows('', $newLineCount);
         $s_result = str_split($result);
         unset($s_result[count($s_result) - 1]); // Remove last \n character.
         $p = 0;

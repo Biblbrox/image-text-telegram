@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Aliases array
+ */
 return [
     '@root' => realpath(__DIR__ . '/..'),
     '@config' => realpath(__DIR__ . '/../Config'),

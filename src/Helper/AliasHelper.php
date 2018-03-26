@@ -19,15 +19,15 @@ class AliasHelper
             return $aliasPath;
         }
 
-        $alias = explode("/", $aliasPath)[0];
+        $alias = explode('/', $aliasPath)[0];
         if (empty($alias)) {
             return $aliasPath;
         }
 
-        if ($alias === $aliasPath || $alias === $aliasPath . "/") {
-            $aliases = require __DIR__ . "/../../Config/aliases.php";
+        if ($alias === $aliasPath || $alias === $aliasPath . '/') {
+            $aliases = require __DIR__ . '/../../Config/aliases.php';
             if (!is_array($aliases)) {
-                throw new \Exception("Aliases config must be array");
+                throw new \Exception('Aliases config must be array');
             }
             if (key_exists($alias, $aliases)) {
                 return $aliases[$alias];
@@ -36,14 +36,14 @@ class AliasHelper
             }
         }
 
-        $aliases = require __DIR__ . "/../../Config/aliases.php";
+        $aliases = require __DIR__ . '/../../Config/aliases.php';
         if (!is_array($aliases)) {
-            throw new \Exception("Aliases config must be array");
+            throw new \Exception('Aliases config must be array');
         }
         if (key_exists($alias, $aliases)) {
-            $str = "/";
-            foreach (array_slice(explode("/", $aliasPath), 1) as $part) {
-                $str .= $part . "/";
+            $str = '/';
+            foreach (array_slice(explode('/', $aliasPath), 1) as $part) {
+                $str .= $part . '/';
             }
             return rtrim($aliases[$alias] . $str, '/');
         } else {

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Db config array
+ */
 return [
     'host'     => 'localhost',
     'db_name'  => 'textpimagebot',

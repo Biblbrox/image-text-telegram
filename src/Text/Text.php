@@ -9,7 +9,7 @@ namespace TextOnImage\Text;
 class Text implements \Iterator, \Countable
 {
     /**
-     * @var
+     * @var int $fontSize
      */
     private $fontSize;
 
@@ -24,16 +24,16 @@ class Text implements \Iterator, \Countable
     private $area;
 
     /**
-     * @var
+     * @var string $fontLocation
      */
     private $fontLocation;
 
     /**
      * Text constructor.
-     * @param $fontLocation
-     * @param $fontSize
+     * @param string $fontLocation
+     * @param int $fontSize
      */
-    public function __construct($fontLocation, $fontSize)
+    public function __construct(string $fontLocation, int $fontSize)
     {
         $this->fontLocation = $fontLocation;
         $this->fontSize = $fontSize;
@@ -78,16 +78,13 @@ class Text implements \Iterator, \Countable
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getMaxWidth()
+    public function getMaxWidth() : int
     {
         $size = imagettfbbox(TextConfig::getInstance()->getFontSize(), 0, TextConfig::getInstance()->getFont(), $this->getRow(0)->getText());
         $width = $size[2] - $size[0];
         $max = $width;
-        /**
-         * @var Row $row
-         */
         foreach ($this->rows as $row) {
             $size = imagettfbbox(TextConfig::getInstance()->getFontSize(), 0, TextConfig::getInstance()->getFont(), $row->getText());
             $width = $size[2] - $size[0];
@@ -111,7 +108,7 @@ class Text implements \Iterator, \Countable
     /**
      * @return mixed
      */
-    public function getFontSize()
+    public function getFontSize() : int
     {
         return $this->fontSize;
     }
@@ -119,7 +116,7 @@ class Text implements \Iterator, \Countable
     /**
      * @param mixed $fontSize
      */
-    public function setFontSize($fontSize)
+    public function setFontSize($fontSize) : void
     {
         $this->fontSize = $fontSize;
     }
@@ -127,17 +124,13 @@ class Text implements \Iterator, \Countable
     /**
      * @param mixed $text
      */
-    public function setText($text)
+    public function setText($text) : void
     {
         if (is_object($text) && !method_exists($text, '__String')) {
             throw new \InvalidArgumentException("Possible concat only string or objects with __toString method");
         }
 
-        if (!is_string($text)) {
-            throw new \InvalidArgumentException("Possible concat only string or objects with __toString method");
-        }
-
-        $this->rows = $text . "";
+        $this->rows = (string) $text;
     }
 
     /**
@@ -165,9 +158,9 @@ class Text implements \Iterator, \Countable
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getFontLocation()
+    public function getFontLocation() : string
     {
         return $this->fontLocation;
     }

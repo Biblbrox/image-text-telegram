@@ -32,7 +32,6 @@ class AddtextCommand extends UserCommand
     protected $version = '0.1.0';
     protected $need_mysql = true;
 
-
     /**#@-*/
     /**
      * {@inheritdoc}
@@ -89,7 +88,7 @@ class AddtextCommand extends UserCommand
                 }
                 $doc = $message->getPhoto();
                 // For photos, get the best quality!
-                $message_type === "photo" && $doc = end($doc);
+                $doc = end($doc);
                 $file_id = $doc->getFileId();
                 $file    = Request::getFile(['file_id' => $file_id]);
                 if ($file->isOk() && Request::downloadFile($file->getResult())) {
@@ -144,7 +143,7 @@ class AddtextCommand extends UserCommand
                 $row = $stmt->fetch(PDO::FETCH_LAZY);
                 $file_path = $row['path'];
                 $data['photo'] = Request::encodeFile($file_path);
-                FileHelper::deleteFilesInDir($this->telegram->getDownloadPath() . '/photos/');
+                FileHelper::deleteDir($this->telegram->getDownloadPath() . '/photos/', FileHelper::ONLY_FILES);
                 $stmt = Database::$connection->prepare('DELETE FROM image WHERE user_id = ?');
                 $stmt->execute([$user_id]);
                 $notes['prev_action'] = 'add-text';
