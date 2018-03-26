@@ -1,12 +1,10 @@
 <?php
 
-
 namespace TextOnImage\Helper;
-
 
 use Imagick;
 use TextOnImage\Text\Text;
-use TextOnImage\Text\TextArea;
+use TextOnImage\Text\TextConfig;
 
 /**
  * Class TextHelper
@@ -14,68 +12,57 @@ use TextOnImage\Text\TextArea;
  */
 class TextHelper
 {
+
     /**
      * @param string $str
      * @param Imagick $image
-     * @param $fontLocation
-     * @param $sizeFont
      * @return Text
      */
-    public static function adaptTextToImage(string $str, Imagick $image, $fontLocation, $sizeFont) : Text
+    public static function splitToRows(string $str, Imagick $image) : Text
     {
-        $resultStr = new Text($fontLocation, $sizeFont);
-        $size = imagettfbbox($sizeFont, 0, $fontLocation, $str);
-        $strWidth = $size[2] - $size[0];
-        $imageWidth = $image->getImageWidth();
-        $padding = 30;
+        $size = self::lenTTFString($str) / ($image->getImageWidth() - $image->getImageWidth() / 40);
 
-        $imgPaddWidth = $imageWidth - $padding;
-        if ($strWidth > $imgPaddWidth) {
-            $lim = intval($strWidth / $imgPaddWidth) + 1;
+        $chunk = intval(1 / $size * self::lenTTFString($str) / self::symbolWidth($str));
+        $result = chunk_split($str, $chunk, "\n");
 
-            $words = self::words($str);
-            $countWords = count($words);
-            if ($countWords === 1) {
-                $resultStr->appendRow(substr($str, 0, intval(mb_strlen($str) / 2)));
-                $resultStr->appendRow(substr($str, intval(mb_strlen($str) / 2) + 1, mb_strlen($str)));
-            } else {
-                for ($i = 0; $i < $lim; $i++) {
-                    $resultStr->appendRow("");
+        $text = new Text(TextConfig::getInstance()->getFont(), TextConfig::getInstance()->getFontSize());
+        $newLineCount = substr_count($result, "\n") - 1;
+        $text->appendRows('', $newLineCount);
+        $s_result = str_split($result);
+        unset($s_result[count($s_result) - 1]); // Remove last \n character.
+        $p = 0;
+        foreach ($text as $row) {
+            for ($i = $p; $i < count($s_result); $i++) {
+                if ($s_result[$i] === "\n") {
+                    $p = $i + 1;
+                    continue 2;
                 }
-                for ($i = 0; $i < $lim; $i++) {
-                    $start = (intval($countWords / $lim) + 1) * $i;
-                    $end = $i === 0 ? intval($countWords / $lim) : (intval($countWords / $lim) + 1) * $i + (intval($countWords / $lim));
-                    for ($j = $start; $j <= $end; $j++) {
-                        if (isset($words[$j])) {
-                            $resultStr->getRow($i)->concat($words[$j] . " ");
-                        }
-                    }
-                }
+                $row->concat($s_result[$i]);
             }
         }
 
-        return $resultStr;
+        return $text;
     }
 
     /**
      * @param $str
-     * @return array
+     * @return int
      */
-    public static function words($str)
+    public static function lenTTFString($str)
     {
-        $words = self::multiExplode(['.', ',', '?', ':', '!', ';', ' '], $str);
-        return $words;
+        $size = imagettfbbox(TextConfig::getInstance()->getFontSize(), 0, TextConfig::getInstance()->getFont(), $str);
+        $strWidth = $size[2] - $size[0];
+        return $strWidth;
     }
 
     /**
-     * @param $delimiters
-     * @param $string
-     * @return array
+     * @param $str
+     * @return int
      */
-    public static function multiExplode($delimiters,$string)
+    public static function symbolWidth($str)
     {
-        $ready = str_replace($delimiters, $delimiters[0], $string);
-        $launch = explode($delimiters[0], $ready);
-        return  $launch;
+        $size = imagettfbbox(TextConfig::getInstance()->getFontSize(), 0, TextConfig::getInstance()->getFont(), $str);
+        $strWidth = $size[2] - $size[0];
+        return intval($strWidth / count(str_split($str)));
     }
 }
