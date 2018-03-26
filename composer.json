@@ -1,6 +1,6 @@
 {
     "name": "biblbrox/text-image-generator",
-    "description": "Generator images with text labels.",
+    "description": "Generator images with text labels",
     "type": "project",
     "license": "MIT",
     "authors": [
